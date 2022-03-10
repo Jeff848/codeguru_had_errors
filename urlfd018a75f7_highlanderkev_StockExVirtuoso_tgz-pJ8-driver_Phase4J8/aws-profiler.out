@@ -1,0 +1,243 @@
+1) Check the initial Market State:
+CLOSED
+
+2) Create a new Stock product in our Trading System: GOOG, then Query the ProductService for all Stock products:
+[GOOG]
+
+3) Subscribe 2 test users for CurrentMarket, LastSale, Ticker & Messages
+   then change Market State to PREOPEN and verify the Market State...
+User ANN Received Market Message: PREOPEN
+User REX Received Market Message: PREOPEN
+Product State: PREOPEN
+
+4) User REX enters a quote, Current Market updates received by both users: 
+User ANN Received Current Market for GOOG 120@$641.10 - 150@$641.15
+User REX Received Current Market for GOOG 120@$641.10 - 150@$641.15
+
+5) Verify Quote is in Book: 
+Buy Side:
+	$641.10 x 120
+Sell Side:
+	$641.15 x 150
+
+6) Get MarketDataDTO for GOOG (Your format might vary but the data content should be the same)
+Market Data: [Product]: GOOG, [BuyPrice]: $641.10 at 120, [SellPrice]: $641.15 at 150,
+
+7) Cancel that Quote, Cancels and Current Market updated received
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.10, Volume: 120, Details: Quote BUY-Side Cancelled, Side: BUY, Id: REXGOOG$641.10388287007162900
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.15, Volume: 150, Details: Quote SELL-Side Cancelled, Side: SELL, Id: REXGOOG$641.15388287007286100
+User ANN Received Current Market for GOOG 0@$0.00 - 0@$0.00
+User REX Received Current Market for GOOG 0@$0.00 - 0@$0.00
+
+8) Verify Quote is NOT in Book: 
+Buy Side:
+	<Empty>
+Sell Side:
+	<Empty>
+
+9) Get MarketDataDTO for GOOG
+Market Data: [Product]: GOOG, [BuyPrice]: $0.00 at 0, [SellPrice]: $0.00 at 0,
+
+10) User ANN enters a quote, Current Market received by both users: 
+User ANN Received Current Market for GOOG 120@$641.10 - 150@$641.15
+User REX Received Current Market for GOOG 120@$641.10 - 150@$641.15
+
+11) User REX enters 5 BUY orders, Current Market updates received (10) by both users for each order: 
+User ANN Received Current Market for GOOG 231@$641.10 - 150@$641.15
+User REX Received Current Market for GOOG 231@$641.10 - 150@$641.15
+User ANN Received Current Market for GOOG 222@$641.11 - 150@$641.15
+User REX Received Current Market for GOOG 222@$641.11 - 150@$641.15
+User ANN Received Current Market for GOOG 333@$641.12 - 150@$641.15
+User REX Received Current Market for GOOG 333@$641.12 - 150@$641.15
+User ANN Received Current Market for GOOG 444@$641.13 - 150@$641.15
+User REX Received Current Market for GOOG 444@$641.13 - 150@$641.15
+User ANN Received Current Market for GOOG 555@$641.14 - 150@$641.15
+User REX Received Current Market for GOOG 555@$641.14 - 150@$641.15
+
+12) Verify Book: 
+Buy Side:
+	$641.14 x 555
+	$641.13 x 444
+	$641.12 x 333
+	$641.11 x 222
+	$641.10 x 231
+Sell Side:
+	$641.15 x 150
+
+13) User ANN enters several 5 Sell orders - no Current Market received - does not improve the market: 
+
+14) Verify Book: 
+Buy Side:
+	$641.14 x 555
+	$641.13 x 444
+	$641.12 x 333
+	$641.11 x 222
+	$641.10 x 231
+Sell Side:
+	$641.15 x 150
+	$641.16 x 111
+	$641.17 x 222
+	$641.18 x 333
+	$641.19 x 444
+	$641.20 x 555
+
+15) User ANN enters a BUY order that is tradable (Current Market received), but won't trade as market is in PREOPEN: 
+User ANN Received Current Market for GOOG 105@$641.15 - 150@$641.15
+User REX Received Current Market for GOOG 105@$641.15 - 150@$641.15
+
+16) Change Market State to OPEN State...Trade should occur.
+    Both users should get Market Message, Fill Messages, Current Market, Last Sale & Tickers.
+User ANN Received Market Message: OPEN
+User REX Received Market Message: OPEN
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.15, Fill Volume: 105, Details: leaving 45, Side: SELL
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.15, Fill Volume: 105, Details: leaving 0, Side: BUY
+User ANN Received Current Market for GOOG 555@$641.14 - 45@$641.15
+User REX Received Current Market for GOOG 555@$641.14 - 45@$641.15
+User ANN Received Last Sale for GOOG 105@$641.15
+User REX Received Last Sale for GOOG 105@$641.15
+User ANN Received Ticker for GOOG $641.15  
+User REX Received Ticker for GOOG $641.15  
+
+17) Verify Book after the trade: 
+Buy Side:
+	$641.14 x 555
+	$641.13 x 444
+	$641.12 x 333
+	$641.11 x 222
+	$641.10 x 231
+Sell Side:
+	$641.15 x 45
+	$641.16 x 111
+	$641.17 x 222
+	$641.18 x 333
+	$641.19 x 444
+	$641.20 x 555
+
+18) User REX enters a big MKT BUY order to trade with all the SELL side:
+    Both users should get many Fill Messages, as well as Current Market, Last Sale & Tickers - and a cancel for the unfilled volume
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.19, Fill Volume: 444, Details: leaving 595, Side: BUY
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.18, Fill Volume: 333, Details: leaving 1039, Side: BUY
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.15, Fill Volume: 45, Details: leaving 1705, Side: BUY
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.20, Fill Volume: 555, Details: leaving 0, Side: SELL
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.17, Fill Volume: 222, Details: leaving 1372, Side: BUY
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.16, Fill Volume: 111, Details: leaving 1594, Side: BUY
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.18, Fill Volume: 333, Details: leaving 0, Side: SELL
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.15, Fill Volume: 45, Details: leaving 0, Side: SELL
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.19, Fill Volume: 444, Details: leaving 0, Side: SELL
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.16, Fill Volume: 111, Details: leaving 0, Side: SELL
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.20, Fill Volume: 555, Details: leaving 40, Side: BUY
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.17, Fill Volume: 222, Details: leaving 0, Side: SELL
+User ANN Received Current Market for GOOG 555@$641.14 - 0@$0.00
+User REX Received Current Market for GOOG 555@$641.14 - 0@$0.00
+User ANN Received Last Sale for GOOG 1710@$641.15
+User REX Received Last Sale for GOOG 1710@$641.15
+User ANN Received Ticker for GOOG $641.15 =
+User REX Received Ticker for GOOG $641.15 =
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: MKT, Volume: 40, Details: Cancelled, Side: BUY, Id: REXGOOGMKT388287147989000
+
+19) Verify Book: 
+Buy Side:
+	$641.14 x 555
+	$641.13 x 444
+	$641.12 x 333
+	$641.11 x 222
+	$641.10 x 231
+Sell Side:
+	<Empty>
+
+20) Get Orders with Remaining Quantity: 
+Product: GOOG, Price: $641.14, OriginalVolume: 555, RemainingVolume: 555, CancelledVolume: 0, User: REX, Side: BUY, IsQuote: false, Id: REXGOOG$641.14388287015529900
+Product: GOOG, Price: $641.10, OriginalVolume: 111, RemainingVolume: 111, CancelledVolume: 0, User: REX, Side: BUY, IsQuote: false, Id: REXGOOG$641.10388287012733300
+Product: GOOG, Price: $641.13, OriginalVolume: 444, RemainingVolume: 444, CancelledVolume: 0, User: REX, Side: BUY, IsQuote: false, Id: REXGOOG$641.13388287014775600
+Product: GOOG, Price: $641.11, OriginalVolume: 222, RemainingVolume: 222, CancelledVolume: 0, User: REX, Side: BUY, IsQuote: false, Id: REXGOOG$641.11388287013548300
+Product: GOOG, Price: $641.12, OriginalVolume: 333, RemainingVolume: 333, CancelledVolume: 0, User: REX, Side: BUY, IsQuote: false, Id: REXGOOG$641.12388287014171200
+
+21) Change Market State to CLOSED State...Both users should get a Market message, many Cancel Messages, and a Current Market Update.
+User ANN Received Market Message: CLOSED
+User REX Received Market Message: CLOSED
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.14, Volume: 555, Details: BUY Order Cancelled, Side: BUY, Id: REXGOOG$641.14388287015529900
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.13, Volume: 444, Details: BUY Order Cancelled, Side: BUY, Id: REXGOOG$641.13388287014775600
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.12, Volume: 333, Details: BUY Order Cancelled, Side: BUY, Id: REXGOOG$641.12388287014171200
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.11, Volume: 222, Details: BUY Order Cancelled, Side: BUY, Id: REXGOOG$641.11388287013548300
+User ANN Received Cancel Message: User: ANN, Product: GOOG, Price: $641.10, Volume: 120, Details: Quote BUY-Side Cancelled, Side: BUY, Id: ANNGOOG$641.10388287011595800
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.10, Volume: 111, Details: BUY Order Cancelled, Side: BUY, Id: REXGOOG$641.10388287012733300
+User ANN Received Current Market for GOOG 0@$0.00 - 0@$0.00
+User REX Received Current Market for GOOG 0@$0.00 - 0@$0.00
+
+22) Verify Book: 
+Buy Side:
+	<Empty>
+Sell Side:
+	<Empty>
+
+23) Change Market State to PREOPEN then to OPEN. Market messages received
+User ANN Received Market Message: PREOPEN
+User REX Received Market Message: PREOPEN
+User ANN Received Market Message: OPEN
+User REX Received Market Message: OPEN
+
+24) User REX enters a BUY order, Current Market received
+User ANN Received Current Market for GOOG 369@$641.30 - 0@$0.00
+User REX Received Current Market for GOOG 369@$641.30 - 0@$0.00
+
+25) User ANN enters a SELL order, users receive Fill Messages, as well as Current Market, Last Sale & Tickers
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.30, Fill Volume: 369, Details: leaving 0, Side: SELL
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.30, Fill Volume: 369, Details: leaving 0, Side: BUY
+User ANN Received Current Market for GOOG 0@$0.00 - 0@$0.00
+User REX Received Current Market for GOOG 0@$0.00 - 0@$0.00
+User ANN Received Last Sale for GOOG 369@$641.30
+User REX Received Last Sale for GOOG 369@$641.30
+User ANN Received Ticker for GOOG $641.30 ?
+User REX Received Ticker for GOOG $641.30 ?
+
+26) User REX enters a MKT BUY order, cancelled as there is no market
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: MKT, Volume: 456, Details: Cancelled, Side: BUY, Id: REXGOOGMKT388287164312300
+
+27) User REX enters a BUY order, Current Market received
+User ANN Received Current Market for GOOG 151@$641.10 - 0@$0.00
+User REX Received Current Market for GOOG 151@$641.10 - 0@$0.00
+
+28) User ANN enters a SELL order, users receive Fill Messages, as well as Current Market, Last Sale & Tickers
+User REX Received Fill Message: User: REX, Product: GOOG, Fill Price: $641.10, Fill Volume: 51, Details: leaving 100, Side: BUY
+User ANN Received Fill Message: User: ANN, Product: GOOG, Fill Price: $641.10, Fill Volume: 51, Details: leaving 0, Side: SELL
+User ANN Received Current Market for GOOG 100@$641.10 - 0@$0.00
+User REX Received Current Market for GOOG 100@$641.10 - 0@$0.00
+User ANN Received Last Sale for GOOG 51@$641.10
+User REX Received Last Sale for GOOG 51@$641.10
+User ANN Received Ticker for GOOG $641.10 ?
+User REX Received Ticker for GOOG $641.10 ?
+
+29) Change Market State to CLOSED State...Both users should get a Market message, many Cancel Messages, and a Current Market Update.
+User ANN Received Market Message: CLOSED
+User REX Received Market Message: CLOSED
+User REX Received Cancel Message: User: REX, Product: GOOG, Price: $641.10, Volume: 100, Details: BUY Order Cancelled, Side: BUY, Id: REXGOOG$641.10388287164501600
+User ANN Received Current Market for GOOG 0@$0.00 - 0@$0.00
+User REX Received Current Market for GOOG 0@$0.00 - 0@$0.00
+
+30) Verify Book: 
+Buy Side:
+	<Empty>
+Sell Side:
+	<Empty>
+
+31) Change Market State to PREOPEN then to OPEN. Market messages received
+User ANN Received Market Message: PREOPEN
+User REX Received Market Message: PREOPEN
+User ANN Received Market Message: OPEN
+User REX Received Market Message: OPEN
+
+32) User REX cancels a non-existent order 
+Properly caught error: OrderNotFoundException: Requested order could not be found.
+
+33) User REX cancels a non-existent quote 
+Cancelling a non-existant quote does nothing as expected
+
+34) Try to create a bad product
+Caught error on bad product: InvalidValueException: NULL String passed into book.ProductService#createProduct.
+
+35) User REX enters order on non-existent stock
+Caught error on order for bad class: NoSuchProductException: No product on the books.
+
+36) User REX enters quote on non-existent stock
+Caught error on quote for bad class: NoSuchProductException: No product on the books.
+
